@@ -16,26 +16,60 @@ const KEYCODES = {
 };
 
 const CONSTANTS = {
+    COLLISION_TIME: 50,
     SPEED: 2.01,
     RADIUS: 0.08,
     JUMP_SPACING: 100,
     JUMP_DISTANCE: 6.2,
-    LINEWIDTH: 3
+    LINEWIDTH: 3,
+    TOLERANCE: 1,
 };
 
 class CollisionMap {
     constructor(width, height) {
         this.width = width;
         this.width = height;
-        this.array = new Uint8Array(width*height);
+        this.recentPoints = [];
+        this.points = new Uint8Array(width*height);
     }
 
-    getPoint(x, y) {
-        return this.array[this.width * y + x];
+    checkCollision(id, x, y) {
+        if (x < 0 || x > this.width || y < 0 || y > this.height) {
+            return true;
+        }
+        if (this.points[this.width * y + x] != 0) { 
+            return true;
+        }
+        for (var point of this.recentPoints) {
+            if (point.id !== id && point.x === x && point.y === y) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    setPoint(value, x, y) {
-        this.array[this.width * y + x] = value;
+    setPoint(id, x, y, time) {
+        for (var i=-CONSTANTS.TOLERANCE; i<=CONSTANTS.TOLERANCE;i++) {
+            for (var j=-CONSTANTS.TOLERANCE; j<=CONSTANTS.TOLERANCE;j++) {
+                this.recentPoints.push({
+                    timer: CONSTANTS.COLLISION_TIME,
+                    id: id,
+                    x: x+i, 
+                    y: y+j, 
+                });
+            }
+        }
+    }
+
+    update(dt) {
+        for (var i = this.recentPoints.length -1; i >= 0; i--) {
+            const point = this.recentPoints[i];
+            point.timer-=dt;
+            if (point.timer <= 0) {
+                this.recentPoints.splice(i,1);
+                this.points[this.width * point.y + point.x] = point.id;
+            }
+        }
     }
 }
 
@@ -57,10 +91,11 @@ class Application {
         };
         this.snakes = [
             {
+                id: 1,
                 x: 100,
                 y: 200,
-                lastX: 100,
-                lastY: 200,
+                lastXPixel: 100,
+                lastYPixel: 200,
                 direction:0,
                 alive: true,
                 color: 'blue',
@@ -68,10 +103,11 @@ class Application {
                 turningRight: false
             },
             {
+                id: 2,
                 x: 400,
                 y: 300,
-                lastX: 400,
-                lastY: 300,
+                lastXPixel: 400,
+                lastYPixel: 300,
                 direction:0,
                 alive: true,
                 color: 'red',
@@ -141,43 +177,42 @@ class Application {
         this.jump.timer-=dt; 
         if (this.jump.timer <= 0) {
             this.jump.timer = this.jump.isJumping ? 
-                  CONSTANTS.JUMP_SPACING
+                CONSTANTS.JUMP_SPACING
                 : CONSTANTS.JUMP_DISTANCE;
             this.jump.isJumping = !this.jump.isJumping;
         }
 
-        //update snake positions and check for collisions
+        this.collisionMap.update(dt);
+
         for (var snake of this.snakes) {
             if (!snake.alive) { continue; }
 
-            if (snake.turningRight) {
-                snake.direction+=CONSTANTS.RADIUS*dt;
+            if (snake.turningLeft) {
+                snake.direction-=CONSTANTS.RADIUS*dt;
             }
             if (snake.turningRight) {
-                snake.direction-=CONSTANTS.RADIUS*dt;
+                snake.direction+=CONSTANTS.RADIUS*dt;
             }
 
             snake.x = snake.x + Math.cos(snake.direction)*CONSTANTS.SPEED*dt;
             snake.y = snake.y + Math.sin(snake.direction)*CONSTANTS.SPEED*dt;
 
-            xInt = Math.trunc(snake.x);
-            yInt = Math.trunc(snake.y);
-            if (xInt != snake.lastX || yInt != snake.lastY) {
+            const xPixel = Math.trunc(snake.x);
+            const yPixel = Math.trunc(snake.y);
+            if (xPixel != snake.lastXPixel || yPixel != snake.lastYPixel) {
 
-                snake.lastX = Math.trunc(snake.x);
-                snake.lastY = Math.trunc(snake.y);
-            }
+                snake.lastXPixel = Math.trunc(snake.x);
+                snake.lastYPixel = Math.trunc(snake.y);
 
-            if (!this.jump.isJumping) {
-
-                if (snake.x < 0 || snake.x > this.width ||
-                    snake.y < 0 || snake.y > this.height) {
-                    snake.alive = false;
+                if (!this.jump.isJumping) {
+                    if (this.collisionMap.checkCollision(snake.id, xPixel, yPixel)) {
+                        snake.alive = false;
+                    }
+                    else {
+                        this.collisionMap.setPoint(snake.id, xPixel, yPixel);
+                    }
                 }
-
-                this.array.getPoint(snake.x, snake.y);
             }
-
         }
     }
 
@@ -188,7 +223,7 @@ class Application {
             this.canvasContext.lineWidth = CONSTANTS.LINEWIDTH;
             this.canvasContext.lineJoin = "round";
             this.canvasContext.beginPath();
-            this.canvasContext.moveTo(snake.lastX, snake.lastY);
+            this.canvasContext.moveTo(snake.lastXPixel, snake.lastYPixel);
             this.canvasContext.lineTo(snake.x, snake.y);
             this.canvasContext.closePath();
             this.canvasContext.stroke();
