@@ -1,5 +1,5 @@
 const CONSTANTS = {
-    COLLISION_TIME: 300,
+    COLLISION_TIME: 1.6,
     SPEED: 2.01,
     RADIUS: 0.08,
     JUMP_SPACING: 100,
@@ -11,21 +11,30 @@ const CONSTANTS = {
 class CollisionMap {
     constructor(width, height) {
         this.width = width;
-        this.width = height;
+        this.hieght = height;
         this.recentPoints = [];
         this.points = new Uint8Array(width*height);
+        this.points.fill(255);
+
+        this.canvasContext = document.getElementById('gameCanvas').getContext('2d');
+    }
+
+    clear() {
         this.points.fill(255);
     }
 
     checkCollision(id, x, y) {
         if (x < 0 || x > this.width || y < 0 || y > this.height) {
+            console.log(id+" collided out of bounds- x:"+x+" y:"+y);
             return true;
         }
         if (this.points[this.width * y + x] != 255) { 
+            console.log(id+" collided with "+this.points[this.width * y + x]);
             return true;
         }
         for (var point of this.recentPoints) {
             if (point.id !== id && point.x === x && point.y === y) {
+                console.log(id+" collided with "+point.id);
                 return true;
             }
         }
@@ -41,6 +50,8 @@ class CollisionMap {
                     x: x+i, 
                     y: y+j, 
                 });
+                // this.canvasContext.fillStyle = 'green';
+                // this.canvasContext.fillRect(x,y,1,1);
             }
         }
     }
@@ -50,20 +61,23 @@ class CollisionMap {
             const point = this.recentPoints[i];
             point.timer-=dt;
             if (point.timer <= 0) {
-                console.log("point placed on "+point.x+" "+point.y);
                 this.recentPoints.splice(i,1);
                 this.points[this.width * point.y + point.x] = point.id;
+                // this.canvasContext.fillStyle = 'white';
+                // this.canvasContext.fillRect(point.x,point.y,1,1);
+
             }
         }
     }
 }
 
+
 class Game {
     constructor(players) {
+        this.paused = false;
         this.canvasContext = document.getElementById('gameCanvas').getContext('2d');
         this.width = document.getElementById('gameCanvas').width;
         this.height = document.getElementById('gameCanvas').height;
-        this.collisionMap = new CollisionMap(this.width, this.height);
         this.time = {
             now : 0,
             dt : 0,
@@ -79,26 +93,12 @@ class Game {
             left: {},
             right: {}
         };
+        this.players = players;
+        this.collisionMap = new CollisionMap(this.width, this.height);
         players.forEach((p,i) => this.controls.left[p.turnLeft.scanCode] = i);
         players.forEach((p,i) => this.controls.right[p.turnRight.scanCode] = i);
-            
-        this.snakes = players.map((p,i) => {
-            const x = this.width*Math.random();
-            const y = this.height*Math.random();
-            const direction = 2*Math.PI*Math.random();
-            return {
-                id: i,
-                x: x,
-                y: y,
-                lastXPixel: Math.trunc(x),
-                lastYPixel: Math.trunc(y),
-                direction:direction,
-                alive: true,
-                color: p.color,
-                turningLeft: false,
-                turningRight: false
-            };
-        });
+
+        this.restart();
     }
 
     timestamp() {
@@ -121,6 +121,12 @@ class Game {
         else if (this.controls.right[e.keyCode] !== undefined) {
             this.snakes[this.controls.right[e.keyCode]].turningRight = true;
         }
+        else if (e.keyCode === 82) {
+            this.restart();
+        }
+        else if (e.keyCode === 32) {
+            this.pause();
+        }
     }
 
     frame() {
@@ -141,6 +147,7 @@ class Game {
     }
 
     update(dt) {
+        if (this.paused) { return; }
         this.jump.timer-=dt; 
         if (this.jump.timer <= 0) {
             this.jump.timer = this.jump.isJumping ? 
@@ -183,8 +190,34 @@ class Game {
         }
     }
 
+    restart() {
+        this.snakes = this.players.map((p,i) => {
+            const x = this.width*Math.random();
+            const y = this.height*Math.random();
+            const direction = 2*Math.PI*Math.random();
+            return {
+                id: i,
+                x: x,
+                y: y,
+                lastXPixel: Math.trunc(x),
+                lastYPixel: Math.trunc(y),
+                direction:direction,
+                alive: true,
+                color: p.color,
+                turningLeft: false,
+                turningRight: false
+            };
+        });
+        this.collisionMap.clear();
+        this.canvasContext.clearRect(0,0,this.width,this.height);
+    }
+
+    pause() {
+        this.paused = !this.paused;
+    }
+
     render() {
-        if (this.jump.isJumping) { return; }
+        if (this.jump.isJumping || this.paused) { return; }
         for (var snake of this.snakes) {
             this.canvasContext.strokeStyle = snake.color;
             this.canvasContext.lineWidth = CONSTANTS.LINEWIDTH;
