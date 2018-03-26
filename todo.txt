@@ -1,0 +1,7 @@
+Gör klart Startmeny funktion
+fixa så att id == plats i snakesarrayen
+Scoreboard
+R-to-restart
+Konec hry
+Styling
+AI

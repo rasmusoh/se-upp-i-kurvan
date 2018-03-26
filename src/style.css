@@ -1,0 +1,16 @@
+.canvas {
+    border-style: solid;
+    border-color:white;
+}
+
+.players {
+    color: white;
+}
+
+.novisible {
+    visibility: hidden;
+}
+
+.hidden {
+    display: none;
+}

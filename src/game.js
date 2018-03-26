@@ -1,26 +1,9 @@
-const KEYCODES = {
-    TAB : 9,
-    ENTER : 13,
-    CTRL : 17,
-    ESCAPE : 27,
-    SPACE : 32,
-    LEFT : 37,
-    UP : 38,
-    RIGHT : 39,
-    DOWN : 40,
-    A : 65,
-    S : 83,
-    C : 67,
-    V : 86,
-    X : 88
-};
-
 const CONSTANTS = {
-    COLLISION_TIME: 50,
+    COLLISION_TIME: 300,
     SPEED: 2.01,
     RADIUS: 0.08,
     JUMP_SPACING: 100,
-    JUMP_DISTANCE: 6.2,
+    JUMP_DISTANCE: 4.2,
     LINEWIDTH: 3,
     TOLERANCE: 1,
 };
@@ -31,13 +14,14 @@ class CollisionMap {
         this.width = height;
         this.recentPoints = [];
         this.points = new Uint8Array(width*height);
+        this.points.fill(255);
     }
 
     checkCollision(id, x, y) {
         if (x < 0 || x > this.width || y < 0 || y > this.height) {
             return true;
         }
-        if (this.points[this.width * y + x] != 0) { 
+        if (this.points[this.width * y + x] != 255) { 
             return true;
         }
         for (var point of this.recentPoints) {
@@ -66,6 +50,7 @@ class CollisionMap {
             const point = this.recentPoints[i];
             point.timer-=dt;
             if (point.timer <= 0) {
+                console.log("point placed on "+point.x+" "+point.y);
                 this.recentPoints.splice(i,1);
                 this.points[this.width * point.y + point.x] = point.id;
             }
@@ -73,11 +58,11 @@ class CollisionMap {
     }
 }
 
-class Application {
-    constructor() {
-        this.canvasContext = document.getElementById("gameCanvas").getContext("2d");
-        this.width = document.getElementById("gameCanvas").width;
-        this.height = document.getElementById("gameCanvas").height;
+class Game {
+    constructor(players) {
+        this.canvasContext = document.getElementById('gameCanvas').getContext('2d');
+        this.width = document.getElementById('gameCanvas').width;
+        this.height = document.getElementById('gameCanvas').height;
         this.collisionMap = new CollisionMap(this.width, this.height);
         this.time = {
             now : 0,
@@ -89,32 +74,31 @@ class Application {
             isJumping: false,
             timer: CONSTANTS.JUMP_SPACING
         };
-        this.snakes = [
-            {
-                id: 1,
-                x: 100,
-                y: 200,
-                lastXPixel: 100,
-                lastYPixel: 200,
-                direction:0,
+
+        this.controls = {
+            left: {},
+            right: {}
+        };
+        players.forEach((p,i) => this.controls.left[p.turnLeft.scanCode] = i);
+        players.forEach((p,i) => this.controls.right[p.turnRight.scanCode] = i);
+            
+        this.snakes = players.map((p,i) => {
+            const x = this.width*Math.random();
+            const y = this.height*Math.random();
+            const direction = 2*Math.PI*Math.random();
+            return {
+                id: i,
+                x: x,
+                y: y,
+                lastXPixel: Math.trunc(x),
+                lastYPixel: Math.trunc(y),
+                direction:direction,
                 alive: true,
-                color: 'blue',
+                color: p.color,
                 turningLeft: false,
                 turningRight: false
-            },
-            {
-                id: 2,
-                x: 400,
-                y: 300,
-                lastXPixel: 400,
-                lastYPixel: 300,
-                direction:0,
-                alive: true,
-                color: 'red',
-                turningLeft: false,
-                turningRight: false
-            }
-        ];
+            };
+        });
     }
 
     timestamp() {
@@ -122,36 +106,20 @@ class Application {
     }
 
     handleKeyUp(e) {
-        switch(e.keyCode) {
-            case KEYCODES.LEFT:
-                this.snakes[0].turningLeft = false;
-                break;
-            case KEYCODES.RIGHT:
-                this.snakes[0].turningRight = false;
-                break;
-            case KEYCODES.A:
-                this.snakes[1].turningLeft = false;
-                break;
-            case KEYCODES.S:
-                this.snakes[1].turningRight = false;
-                break;
+        if (this.controls.left[e.keyCode] !== undefined) {
+            this.snakes[this.controls.left[e.keyCode]].turningLeft = false;
+        }
+        else if (this.controls.right[e.keyCode] !== undefined) {
+            this.snakes[this.controls.right[e.keyCode]].turningRight = false;
         }
     }
 
     handleKeyDown(e) {
-        switch(e.keyCode) {
-            case KEYCODES.LEFT:
-                this.snakes[0].turningLeft = true;
-                break;
-            case KEYCODES.RIGHT:
-                this.snakes[0].turningRight = true;
-                break;
-            case KEYCODES.A:
-                this.snakes[1].turningLeft = true;
-                break;
-            case KEYCODES.S:
-                this.snakes[1].turningRight = true;
-                break;
+        if (this.controls.left[e.keyCode] !== undefined) {
+            this.snakes[this.controls.left[e.keyCode]].turningLeft = true;
+        }
+        else if (this.controls.right[e.keyCode] !== undefined) {
+            this.snakes[this.controls.right[e.keyCode]].turningRight = true;
         }
     }
 
@@ -173,7 +141,6 @@ class Application {
     }
 
     update(dt) {
-        //handle jumping
         this.jump.timer-=dt; 
         if (this.jump.timer <= 0) {
             this.jump.timer = this.jump.isJumping ? 
@@ -217,11 +184,11 @@ class Application {
     }
 
     render() {
+        if (this.jump.isJumping) { return; }
         for (var snake of this.snakes) {
-            if (this.jump.isJumping) { return; }
             this.canvasContext.strokeStyle = snake.color;
             this.canvasContext.lineWidth = CONSTANTS.LINEWIDTH;
-            this.canvasContext.lineJoin = "round";
+            this.canvasContext.lineJoin = 'round';
             this.canvasContext.beginPath();
             this.canvasContext.moveTo(snake.lastXPixel, snake.lastYPixel);
             this.canvasContext.lineTo(snake.x, snake.y);

@@ -1,18 +1,31 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>OhLD 2.0</title>
-        <style> body: { background-color: black; } </style>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" type="text/css" href="style.css">
+        <title>Se upp i kurvan!</title>
     </head>
     <body > 
-        <canvas id ="gameCanvas" width="800" height="800">
+        <canvas class="canvas hidden" id="gameCanvas" width="1800" height="900">
         </canvas>
-        <div ui-view> test </div>
-
-        <script src="js/app.js"></script>
+        <div id="startMenu">
+            <table  id="players" class="players">
+                <tr>
+                    <th>spelare</th>
+                </tr>
+            </table>
+            <button id="addPlayer" onclick="addPlayer()">+</button>
+            <button id="removePlayer" onclick="removePlayer()">-</button>
+            <div>
+                <button onclick="startGame()">Kör!</button>
+            </div>
+        </div>
+        <script src="game.js"></script>
+        <script src="menu.js"></script>
+        <script src="players.js"></script>
         <script>
-            var app = new Application();
-            app.run();
+            document.body.style.backgroundColor = "black";
+            createMenu();
         </script>
     </body>
 </html>
