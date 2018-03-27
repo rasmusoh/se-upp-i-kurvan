@@ -12,10 +12,19 @@ function createMenu() {
             +    '<input id="aiCheckbox'+p.id+'" type="checkbox">'
             +    '<label for="aiCheckbox'+p.id+'">Robot</label>'
             +'</td>';
+
+        const scoreTr = document.createElement('tr');
+        scoreTr.innerHTML = 
+            '<td style="background-color:'+p.color+';"></td>'
+            +'<td>0</td>';
+
         if (i >= activePlayers) {
             tr.classList.add('hidden');
+            scoreTr.classList.add('hidden');
         }
         document.getElementById('players').appendChild(tr);
+        document.getElementById('score').appendChild(scoreTr);
+
         document.getElementById('removePlayer').classList.add('novisible');
     }
 }
@@ -25,6 +34,10 @@ function addPlayer() {
 
     activePlayers++;
     document.getElementById('players')
+        .children[activePlayers]
+        .classList.remove('hidden');
+
+    document.getElementById('score')
         .children[activePlayers]
         .classList.remove('hidden');
 
@@ -42,6 +55,10 @@ function removePlayer() {
         .children[activePlayers+1]
         .classList.add('hidden');
 
+    document.getElementById('score')
+        .children[activePlayers]
+        .classList.add('hidden');
+
     document.getElementById('addPlayer').classList.remove('novisible');
     if (activePlayers == 2) {
         document.getElementById('removePlayer').classList.add('novisible');
@@ -50,7 +67,7 @@ function removePlayer() {
 
 function startGame() {
     document.getElementById('startMenu').classList.add('hidden');
-    document.getElementById('gameCanvas').classList.remove('hidden');
+    document.getElementById('gameDiv').classList.remove('hidden');
 
     const game = new Game(Players.slice(0,activePlayers));
     game.run();

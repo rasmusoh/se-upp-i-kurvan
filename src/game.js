@@ -8,6 +8,14 @@ const CONSTANTS = {
     TOLERANCE: 1,
 };
 
+function updateScores(scores) {
+    for (var i = 0; i < scores.length; i++) {
+        document.getElementById('score')
+            .children[i]
+            .children[1].innerHTML = scores[i];
+    }
+}
+
 class CollisionMap {
     constructor(width, height) {
         this.width = width;
@@ -50,8 +58,6 @@ class CollisionMap {
                     x: x+i, 
                     y: y+j, 
                 });
-                // this.canvasContext.fillStyle = 'green';
-                // this.canvasContext.fillRect(x,y,1,1);
             }
         }
     }
@@ -63,9 +69,6 @@ class CollisionMap {
             if (point.timer <= 0) {
                 this.recentPoints.splice(i,1);
                 this.points[this.width * point.y + point.x] = point.id;
-                // this.canvasContext.fillStyle = 'white';
-                // this.canvasContext.fillRect(point.x,point.y,1,1);
-
             }
         }
     }
@@ -75,6 +78,8 @@ class CollisionMap {
 class Game {
     constructor(players) {
         this.paused = false;
+        this.ended = false;
+        this.score = new Array(players.length).fill(0);
         this.canvasContext = document.getElementById('gameCanvas').getContext('2d');
         this.width = document.getElementById('gameCanvas').width;
         this.height = document.getElementById('gameCanvas').height;
@@ -148,6 +153,10 @@ class Game {
 
     update(dt) {
         if (this.paused) { return; }
+        if (this.ended) { 
+            this.restart();
+            this.ended = false; 
+        }
         this.jump.timer-=dt; 
         if (this.jump.timer <= 0) {
             this.jump.timer = this.jump.isJumping ? 
@@ -181,6 +190,9 @@ class Game {
                 if (!this.jump.isJumping) {
                     if (this.collisionMap.checkCollision(snake.id, xPixel, yPixel)) {
                         snake.alive = false;
+                        if (this.snakes.filter(s => s.alive).length === 1) {
+                            this.end(this.snakes.filter(s => s.alive)[0]);
+                        }
                     }
                     else {
                         this.collisionMap.setPoint(snake.id, xPixel, yPixel);
@@ -188,6 +200,13 @@ class Game {
                 }
             }
         }
+    }
+
+    end(winner) {
+        this.ended = true;
+        this.score[winner]++;
+        updateScores(this.score);
+        this.paused = true;
     }
 
     restart() {

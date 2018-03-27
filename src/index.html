@@ -6,26 +6,29 @@
         <title>Se upp i kurvan!</title>
     </head>
     <body > 
-        <canvas class="canvas hidden" id="gameCanvas" width="1800" height="900">
-        </canvas>
-        <div id="startMenu">
-            <table  id="players" class="players">
-                <tr>
-                    <th>spelare</th>
-                </tr>
-            </table>
-            <button id="addPlayer" onclick="addPlayer()">+</button>
-            <button id="removePlayer" onclick="removePlayer()">-</button>
-            <div>
-                <button onclick="startGame()">Kör!</button>
-            </div>
+        <div id="gameDiv" class="hidden">
+            <canvas class="canvas" id="gameCanvas" width="1800" height="900">
+            </canvas>
+            <table  id="score" class="score"></table>
         </div>
-        <script src="game.js"></script>
-        <script src="menu.js"></script>
-        <script src="players.js"></script>
-        <script>
-            document.body.style.backgroundColor = "black";
-            createMenu();
-        </script>
+            <div id="startMenu">
+                <table  id="players" class="players">
+                    <tr>
+                        <th>spelare</th>
+                    </tr>
+                </table>
+                <button id="addPlayer" onclick="addPlayer()">+</button>
+                <button id="removePlayer" onclick="removePlayer()">-</button>
+                <div>
+                    <button onclick="startGame()">Kör!</button>
+                </div>
+            </div>
+            <script src="game.js"></script>
+            <script src="menu.js"></script>
+            <script src="players.js"></script>
+            <script>
+                document.body.style.backgroundColor = "black";
+createMenu();
+            </script>
     </body>
 </html>

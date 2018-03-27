@@ -3,6 +3,11 @@
     border-color:white;
 }
 
+.score {
+    color: white;
+    float: right;
+}
+
 .players {
     color: white;
 }
