@@ -20,8 +20,10 @@ class Game {
             right: {}
         };
         this.collisionMap = new CollisionMap(this.width, this.height);
-        players.forEach((p,i) => this.controls.left[p.turnLeft.scanCode] = i);
-        players.forEach((p,i) => this.controls.right[p.turnRight.scanCode] = i);
+        players.filter(p => p.humanControlled)
+            .forEach((p,i) => this.controls.left[p.turnLeft.scanCode] = i);
+        players.filter(p => p.humanControlled)
+            .forEach((p,i) => this.controls.right[p.turnRight.scanCode] = i);
 
         this.snakes = players.map((p,i) => {
             const x = this.width*Math.random();

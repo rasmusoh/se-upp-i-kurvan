@@ -7,21 +7,20 @@
     </head>
     <body > 
         <div id="gameDiv" class="hidden">
-            <canvas class="canvas" id="gameCanvas" width="1800" height="900">
+            <canvas class="canvas" id="gameCanvas" width="1720" height="900">
             </canvas>
-            <table  id="score" class="score"></table>
+        <table  id="score" class="score"></table>
         </div>
-            <div id="startMenu">
-                <table  id="players" class="players">
-                    <tr>
-                        <th>spelare</th>
-                    </tr>
-                </table>
+        <div id="startMenu" class="menu">
+            <h2>spelare</h2>
+            <table id="players" class="players">
+            </table>
+            <div> 
                 <button id="addPlayer" onclick="addPlayer()">+</button>
                 <button id="removePlayer" onclick="removePlayer()">-</button>
-                <div>
-                    <button onclick="startGame()">Kör!</button>
-                </div>
+            </div>
+            <div>
+                <button class="start-button" onclick="startGame()">Kör!</button>
             </div>
             <script src="game.js"></script>
             <script src="match.js"></script>
