@@ -69,6 +69,6 @@ function startGame() {
     document.getElementById('startMenu').classList.add('hidden');
     document.getElementById('gameDiv').classList.remove('hidden');
 
-    const game = new Game(Players.slice(0,activePlayers));
-    game.run();
+    const match = new Match(Players.slice(0,activePlayers));
+    match.start();
 }

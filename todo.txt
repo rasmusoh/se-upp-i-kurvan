@@ -1,7 +1,7 @@
-Gör klart Startmeny funktion
-fixa så att id == plats i snakesarrayen
-Scoreboard
-R-to-restart
-Konec hry
+DONE - Gör klart Startmeny funktion
+DONE - fixa så att id == plats i snakesarrayen
+DONE - Scoreboard
+DONE - R-to-restart 
+DONE - Konec hry
 Styling
 AI
