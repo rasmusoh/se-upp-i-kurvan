@@ -30,8 +30,6 @@ function createMenu() {
         document.getElementById('score').appendChild(scoreTr);
 
         document.getElementById('removePlayer').classList.add('novisible');
-
-        toggleAi(1);
     }
 }
 

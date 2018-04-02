@@ -9,15 +9,15 @@ class Ai {
     }
 
     update(snake, dt) {
-        const maxLeft = checkDirection(snake.direction-Math.PI/4, snake);
-        const maxCenter = checkDirection(snake.direction, snake);
-        const maxRight = checkDirection(snake.direction+Math.PI/4, snake);
+        const distanceLeft = this.checkDirection(snake.direction-Math.PI/4, snake);
+        const distanceCenter = this.checkDirection(snake.direction, snake);
+        const distanceRight = this.checkDirection(snake.direction+Math.PI/4, snake);
 
-        if (maxLeft > maxCenter && maxLeft > maxRight) {
+        if (distanceLeft > distanceCenter && distanceLeft > distanceRight) {
             snake.turningRight = false;
             snake.turningLeft = true;
         }
-        else if (maxRight > maxCenter && maxRight > maxLeft) {
+        else if (distanceRight > distanceCenter && distanceRight > distanceLeft) {
             snake.turningRight = true;
             snake.turningLeft = false;
         }
@@ -30,7 +30,6 @@ class Ai {
     checkDirection(direction, snake) {
         var x = snake.x;
         var y = snake.y;
-        var distanceCenter = 0;
 
         for (var i=1; i<=VIEWING_DISTANCE; i+= 2) {
             x+= Math.cos(direction) * VIEWING_STEP;
