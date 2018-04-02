@@ -3,6 +3,7 @@ RADIUS = 0.08;
 JUMP_SPACING = 100;
 JUMP_DISTANCE = 4.2;
 LINEWIDTH = 3;
+AI_POLLING_TIME = 4;
 
 class Game {
     constructor(players) {
@@ -19,11 +20,16 @@ class Game {
             left: {},
             right: {}
         };
+        players.forEach((p,i) => {
+            if (p.humanControlled) {
+                this.controls.left[p.turnLeft.scanCode] = i;
+                this.controls.right[p.turnRight.scanCode] = i;
+            }
+        });
+
         this.collisionMap = new CollisionMap(this.width, this.height);
-        players.filter(p => p.humanControlled)
-            .forEach((p,i) => this.controls.left[p.turnLeft.scanCode] = i);
-        players.filter(p => p.humanControlled)
-            .forEach((p,i) => this.controls.right[p.turnRight.scanCode] = i);
+        this.aiTimer = 0;
+        this.ai = new Ai(this.collisionMap, this.width, this.height);
 
         this.snakes = players.map((p,i) => {
             const x = this.width*Math.random();
@@ -33,6 +39,7 @@ class Game {
                 id: i,
                 x: x,
                 y: y,
+                ai: !p.humanControlled,
                 lastXPixel: Math.trunc(x),
                 lastYPixel: Math.trunc(y),
                 direction:direction,
@@ -71,17 +78,22 @@ class Game {
             this.jump.isJumping = !this.jump.isJumping;
         }
 
+        this.aiTimer-=dt;
+        if (this.aiTimer <= 0) {
+            this.aiTimer = AI_POLLING_TIME;
+            for (var snake of this.snakes) {
+                if (snake.ai) { this.ai.update(snake, this.collisionMap, dt); }
+            }
+        }
+
         this.collisionMap.update(dt);
 
         for (var snake of this.snakes) {
             if (!snake.alive) { continue; }
 
-            if (snake.turningLeft) {
-                snake.direction-=RADIUS*dt;
-            }
-            if (snake.turningRight) {
-                snake.direction+=RADIUS*dt;
-            }
+
+            if (snake.turningLeft) { snake.direction-=RADIUS*dt; }
+            if (snake.turningRight) { snake.direction+=RADIUS*dt; }
 
             snake.x = snake.x + Math.cos(snake.direction)*SPEED*dt;
             snake.y = snake.y + Math.sin(snake.direction)*SPEED*dt;
