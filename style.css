@@ -32,6 +32,14 @@ button:hover {
     color: black;
 }
 
+footer {
+    font-size: 0.8em;
+    position:fixed;
+    bottom:0;
+    text-align: center;
+    width: 100%;
+}
+
 .menu {
     display: flex;
     align-items: center;
